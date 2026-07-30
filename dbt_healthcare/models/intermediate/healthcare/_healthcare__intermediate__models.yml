@@ -1,0 +1,107 @@
+version: 2
+
+models:
+  - name: int_claim_payment_summary
+    description: >
+      One row per claim (billing_id/claim_id) with billed vs. paid amounts,
+      outstanding balance, payment rate, and a payment status bucket.
+    columns:
+      - name: claim_id
+        description: Unique identifier for the claim (primary key of this model).
+        tests:
+          - not_null
+          - unique
+      - name: payment_bucket
+        description: Payment status derived from paid vs. billed amount.
+        tests:
+          - accepted_values:
+              values: ['unpaid', 'partially_paid', 'fully_paid']
+
+  - name: int_claim_denial_summary
+    description: >
+      One row per claim with denial and appeal details joined from the
+      denials source. Claims with no denial record have null denial fields
+      and is_denied = false.
+    columns:
+      - name: claim_id
+        description: Unique identifier for the claim (primary key of this model).
+        tests:
+          - not_null
+          - unique
+
+  - name: int_claim_cycle_times
+    description: >
+      One row per claim with elapsed-day metrics between the clinical visit,
+      discharge, and claim billing date.
+    columns:
+      - name: claim_id
+        description: Unique identifier for the claim (primary key of this model).
+        tests:
+          - not_null
+          - unique
+
+  - name: int_claim_financials
+    description: >
+      Wide claim-grain table combining int_claim_payment_summary,
+      int_claim_denial_summary, and int_claim_cycle_times. This is the
+      primary building block for downstream marts.
+    columns:
+      - name: claim_id
+        description: Unique identifier for the claim (primary key of this model).
+        tests:
+          - not_null
+          - unique
+
+  - name: int_claim_journey
+    description: >
+      One row per encounter describing the clinical and billing journey:
+      visit details, primary diagnosis, procedure volume/cost, and the
+      resulting claim outcome.
+    columns:
+      - name: encounter_id
+        description: Unique identifier for the encounter (primary key of this model).
+        tests:
+          - not_null
+          - unique
+
+  - name: int_ar_ageing
+    description: >
+      One row per claim with an outstanding balance (outstanding_amount > 0),
+      bucketed by days outstanding relative to the dataset's own latest
+      claim_billing_date (as_of_date), since this is a static historical
+      dataset rather than a live feed.
+    columns:
+      - name: claim_id
+        description: Unique identifier for the claim (primary key of this model).
+        tests:
+          - not_null
+          - unique
+      - name: ageing_bucket
+        description: Days-outstanding bucket.
+        tests:
+          - accepted_values:
+              values: ['0-30', '31-60', '61-90', '90+']
+
+  - name: int_provider_performance
+    description: >
+      One row per provider with encounter volume, readmission rate, and
+      claim billing/denial performance attributed via the encounter's
+      attending provider.
+    columns:
+      - name: provider_id
+        description: Unique identifier for the provider (primary key of this model).
+        tests:
+          - not_null
+          - unique
+
+  - name: int_payer_performance
+    description: >
+      One row per payer (payer_name) with claim volume, payment rate, and
+      denial performance. There is no separate payers dimension table in
+      the source data, so payer_name is used directly as the payer key.
+    columns:
+      - name: payer_name
+        description: Payer name (primary key of this model).
+        tests:
+          - not_null
+          - unique
