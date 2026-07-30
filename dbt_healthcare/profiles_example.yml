@@ -1,0 +1,29 @@
+healthcare_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: HEALTHCARE_TRANSFORMER
+      database: HEALTHCARE_ANALYTICS
+      warehouse: HEALTHCARE_WH
+      schema: ANALYTICS_DEV
+      threads: 4
+      client_session_keep_alive: false
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: HEALTHCARE_TRANSFORMER
+      database: HEALTHCARE_ANALYTICS
+      warehouse: HEALTHCARE_WH
+      schema: ANALYTICS_PROD
+      threads: 4
+      client_session_keep_alive: false
+
+# NOTE: this file is a reference copy only. The real profiles.yml that dbt
+# reads must live in ~/.dbt/profiles.yml on your machine, and should never
+# be committed to source control.
