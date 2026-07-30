@@ -1,0 +1,25 @@
+version: 2
+
+sources:
+  - name: raw_healthcare
+    database: "{{ var('raw_database') }}"
+    schema: "{{ var('raw_schema') }}"
+    loaded_at_field: _loaded_at
+    tables:
+      - name: patients
+        description: "One row per patient. Loaded from patients.csv."
+      - name: providers
+        description: "One row per provider/clinician. Loaded from providers.csv."
+      - name: encounters
+        description: "One row per patient visit/encounter. Loaded from encounters.csv."
+      - name: diagnoses
+        description: "One row per diagnosis linked to an encounter. Loaded from diagnoses.csv."
+      - name: procedures
+        description: "One row per procedure performed during an encounter. Loaded from procedures.csv."
+      - name: claims_and_billing
+        description: >
+          One row per billing/claim event per encounter. Combines charge, claim submission,
+          payment and claim-status fields (this source dataset does not split claims and
+          payments into separate files). Loaded from claims_and_billing.csv.
+      - name: denials
+        description: "One row per denial event tied to a claim_id. Loaded from denials.csv."
