@@ -1,0 +1,124 @@
+version: 2
+
+models:
+  - name: stg_patients
+    description: "Cleaned, deduplicated patient records (one row per patient_id)."
+    columns:
+      - name: patient_id
+        description: "Primary key. PATxxxxxx identifier."
+        tests:
+          - unique
+          - not_null
+      - name: gender
+        tests:
+          - accepted_values:
+              values: ['MALE', 'FEMALE']
+              config:
+                severity: warn
+
+  - name: stg_providers
+    description: "Cleaned, deduplicated provider records (one row per provider_id)."
+    columns:
+      - name: provider_id
+        description: "Primary key. PROxxxxx identifier."
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_encounters
+    description: "Cleaned, deduplicated encounter/visit records (one row per encounter_id)."
+    columns:
+      - name: encounter_id
+        description: "Primary key. ENCxxxxxx identifier."
+        tests:
+          - unique
+          - not_null
+      - name: patient_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_patients')
+              field: patient_id
+      - name: provider_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_providers')
+              field: provider_id
+      - name: encounter_status
+        tests:
+          - accepted_values:
+              values: ['COMPLETED']
+              config:
+                severity: warn
+
+  - name: stg_diagnoses
+    description: "Cleaned, deduplicated diagnosis records (one row per diagnosis_id)."
+    columns:
+      - name: diagnosis_id
+        tests:
+          - unique
+          - not_null
+      - name: encounter_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_encounters')
+              field: encounter_id
+
+  - name: stg_procedures
+    description: "Cleaned, deduplicated procedure records (one row per procedure_id)."
+    columns:
+      - name: procedure_id
+        tests:
+          - unique
+          - not_null
+      - name: encounter_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_encounters')
+              field: encounter_id
+      - name: procedure_cost
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              config:
+                severity: warn
+
+  - name: stg_claims_billing
+    description: >
+      Cleaned, deduplicated billing/claim/payment records (one row per billing_id).
+      Source dataset combines claims and payments into a single file.
+    columns:
+      - name: billing_id
+        tests:
+          - unique
+          - not_null
+      - name: patient_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_patients')
+              field: patient_id
+      - name: claim_status
+        tests:
+          - accepted_values:
+              values: ['PAID', 'DENIED']
+
+  - name: stg_denials
+    description: "Cleaned, deduplicated denial records (one row per denial_id)."
+    columns:
+      - name: denial_id
+        tests:
+          - unique
+          - not_null
+      - name: claim_id
+        tests:
+          - not_null
+      - name: appeal_status
+        tests:
+          - accepted_values:
+              values: ['APPROVED', 'DENIED', 'PENDING']
+              config:
+                severity: warn
