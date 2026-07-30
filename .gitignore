@@ -1,0 +1,9 @@
+.env
+*.pyc
+__pycache__/
+dbt_healthcare/target/
+dbt_healthcare/logs/
+dbt_healthcare/dbt_packages/
+data/raw_csv/
+.DS_Store
+*.pbix.bak
